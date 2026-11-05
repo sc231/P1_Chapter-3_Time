@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第三課 看時間</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background: linear-gradient(145deg, #f9f3e8 0%, #ffe9d6 100%);
+      min-height: 100vh;
+      padding: 20px 16px 40px;
+      display: flex; flex-direction: column; align-items: center;
+      color: #2e241f;
+    }
+    .app-container { max-width: 1300px; width: 100%; }
+    h1 {
+      font-size: 2.4rem; font-weight: 900; color: #c44b2b;
+      text-align: center; margin-bottom: 20px; letter-spacing: 2px;
+      text-shadow: 3px 3px 0 #ffd9b0;
+    }
+    .tab-bar {
+      display: flex; justify-content: center; gap: 14px;
+      margin: 20px 0 30px; flex-wrap: wrap;
+    }
+    .tab-btn {
+      background: #fff3e4; border: 4px solid #f5d3b0; border-radius: 60px;
+      padding: 14px 32px; font-size: 1.3rem; font-weight: 800; color: #7b4e2e;
+      cursor: pointer; box-shadow: 0 6px 0 #d9b99b; transition: all 0.08s;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .tab-btn i { font-size: 1.4rem; }
+    .tab-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #d9b99b; }
+    .tab-btn.active {
+      background: #f5a623; color: white; border-color: #ffe3b0;
+      box-shadow: 0 6px 0 #b86f1e;
+    }
+    .page { display: none; }
+    .page.active { display: block; }
+    .section-title {
+      font-size: 1.8rem; font-weight: 800; color: #9f4d2e;
+      margin: 10px 0 18px 0; display: flex; align-items: center; gap: 12px;
+      border-left: 12px solid #f5a623; padding-left: 18px;
+      background: linear-gradient(to right, #ffe6d5, transparent);
+      border-radius: 0 30px 30px 0;
+    }
+    .section-title i { color: #e07c3c; font-size: 1.8rem; }
+
+    /* 生字卡 */
+    .cards-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 22px; margin-bottom: 20px;
+    }
+    .word-card {
+      background: white; border-radius: 36px 36px 36px 12px;
+      padding: 18px 16px 16px; box-shadow: 0 12px 0 #d9b99b, 0 8px 20px rgba(0,0,0,0.15);
+      transition: all 0.1s ease; border: 3px solid #f7d5b5;
+      display: flex; flex-direction: column; position: relative;
+    }
+    .word-card:hover { transform: translateY(-3px); box-shadow: 0 15px 0 #d9b99b, 0 12px 24px rgba(0,0,0,0.18); }
+    .word-icon { font-size: 3.2rem; text-align: center; margin-bottom: 6px; line-height: 1.2; filter: drop-shadow(2px 4px 4px rgba(0,0,0,0.1)); }
+    .word-chinese { font-size: 2.2rem; font-weight: 900; text-align: center; color: #3d2b1f; letter-spacing: 4px; margin: 4px 0; }
+    .word-english { font-size: 1rem; text-align: center; color: #6b4f3a; font-weight: 600; background: #fef1e4; border-radius: 30px; padding: 4px 8px; margin: 6px 0; }
+    .jyutping-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 8px 0 6px; flex-wrap: wrap; }
+    .jyutping {
+      font-family: 'Courier New', monospace; font-weight: 700; font-size: 1.1rem;
+      color: #b2542a; background: #fff0df; padding: 4px 12px; border-radius: 40px;
+      letter-spacing: 0.5px; border: 1px dashed #e3a56b;
+    }
+    .speak-btn {
+      background: #f5a623; border: none; color: white; width: 46px; height: 46px;
+      border-radius: 50%; font-size: 1.5rem; cursor: pointer; box-shadow: 0 5px 0 #b86f1e;
+      transition: all 0.08s; display: flex; align-items: center; justify-content: center;
+      border: 2px solid #ffe3b0;
+    }
+    .speak-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 #b86f1e; }
+    .speak-btn i { filter: drop-shadow(1px 2px 2px rgba(0,0,0,0.2)); }
+
+    /* 詞語配對 */
+    .match-container {
+      background: #fff8ee; border-radius: 48px; padding: 28px 24px;
+      box-shadow: inset 0 0 0 4px #ffe0bf, 0 12px 24px rgba(180, 120, 70, 0.2);
+      margin-bottom: 24px;
+    }
+    .match-row {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+      gap: 16px 28px; margin-bottom: 20px; background: #fff3e4;
+      padding: 18px 20px; border-radius: 100px; box-shadow: 0 4px 0 #eaccb0;
+    }
+    .match-word {
+      font-size: 2rem; font-weight: 800; color: #4d2e1b; background: white;
+      padding: 8px 26px; border-radius: 50px; box-shadow: 0 6px 0 #d1b8a0;
+      border: 3px solid #f5d3b0; display: flex; align-items: center; gap: 16px;
+    }
+    .match-options { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; }
+    .option-btn {
+      background: #ffdbb5; border: 4px solid #fff; border-radius: 60px;
+      padding: 12px 22px; font-size: 1.6rem; font-weight: 700; color: #512e17;
+      cursor: pointer; box-shadow: 0 6px 0 #b58252; transition: all 0.08s;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .option-btn i { font-size: 1.8rem; }
+    .option-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #b58252; }
+    .option-btn.correct { background: #a5d6a5; box-shadow: 0 6px 0 #558b55; border-color: #eaffea; }
+    .option-btn.wrong { background: #f8b5b5; box-shadow: 0 6px 0 #a65d5d; border-color: #ffe0e0; }
+    .feedback-msg { font-size: 1.2rem; font-weight: 600; color: #9a4b2c; margin-left: 12px; }
+
+    /* 標點 */
+    .punct-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 24px;
+    }
+    .punct-card {
+      background: #fffcf5; border-radius: 40px; padding: 24px 22px;
+      box-shadow: 0 12px 0 #dfc5ab, 0 8px 18px rgba(0,0,0,0.1);
+      border: 3px solid #ffe0bb; display: flex; flex-direction: column;
+    }
+    .question-num { font-size: 1rem; color: #a16b43; font-weight: 700; margin-bottom: 8px; }
+    .sentence-box {
+      background: #fef5ea; border-radius: 24px; padding: 18px 20px; font-size: 1.6rem;
+      margin: 12px 0; border: 2px dashed #e6b78b; display: flex;
+      flex-wrap: wrap; align-items: center; gap: 8px; min-height: 80px;
+    }
+    .punct-placeholder {
+      font-size: 2rem; font-weight: 900; color: #b85e2e; display: inline-block;
+      min-width: 40px; text-align: center; padding: 0 4px;
+      border-bottom: 3px solid #e6b78b;
+    }
+    .punct-placeholder.filled { border-bottom-color: #2e7d32; color: #2e7d32; }
+    .punct-options { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 6px; }
+    .punct-option {
+      background: #ffddb9; border: none; border-radius: 50px; padding: 12px 24px;
+      font-size: 1.8rem; font-weight: 800; color: #552e16; cursor: pointer;
+      box-shadow: 0 6px 0 #b47b4a; transition: all 0.08s; border: 3px solid #fff;
+    }
+    .punct-option:active { transform: translateY(4px); box-shadow: 0 2px 0 #b47b4a; }
+    .punct-option.correct { background: #b1e0b1; box-shadow: 0 6px 0 #4e7d4e; }
+    .punct-option.wrong { background: #f8b5b5; box-shadow: 0 6px 0 #a65d5d; }
+    .punct-option:disabled { opacity: 0.7; cursor: default; }
+    .feedback-msg { font-size: 1.1rem; font-weight: 600; color: #9a4b2c; margin-top: 10px; min-height: 28px; }
+    .punct-footer-note {
+      text-align: center; font-size: 1.1rem; color: #7b5e4c;
+      margin-top: 24px; background: #fff3e6; padding: 12px; border-radius: 40px;
+    }
+
+    /* 時間詞 */
+    .time-section {
+      background: #e5f0fa; border-radius: 48px; padding: 30px 28px;
+      box-shadow: 0 12px 0 #b8c9db; margin-bottom: 24px;
+    }
+    .clock-match-row {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+      gap: 30px; margin-bottom: 30px; background: #fff; border-radius: 60px;
+      padding: 24px 30px; box-shadow: 0 8px 0 #a5b9ce; border: 3px solid #c9ddef;
+    }
+    .clock-display { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .clock-face {
+      width: 150px; height: 150px; background: #fff; border: 8px solid #5d7b95;
+      border-radius: 50%; position: relative;
+      box-shadow: inset 0 0 0 4px #e8f0f8, 0 6px 0 #3e5a73;
+    }
+    .clock-center {
+      position: absolute; top: 50%; left: 50%; width: 12px; height: 12px;
+      background: #3e5a73; border-radius: 50%; transform: translate(-50%, -50%); z-index: 2;
+    }
+    .hand {
+      position: absolute; bottom: 50%; left: 50%; transform-origin: bottom center;
+      background: #3e5a73; border-radius: 8px 8px 2px 2px; z-index: 1;
+    }
+    .hour-hand { width: 8px; height: 45px; transform: translateX(-50%) rotate(0deg); background: #2c3e50; }
+    .minute-hand { width: 6px; height: 62px; transform: translateX(-50%) rotate(0deg); background: #e67e22; }
+    .clock-numbers {
+      position: absolute; width: 100%; height: 100%; top: 0; left: 0;
+      font-size: 0.9rem; font-weight: 700; color: #5d7b95;
+    }
+    .clock-numbers span { position: absolute; transform: translate(-50%, -50%); }
+    .clock-label { font-size: 1.1rem; font-weight: 700; color: #2b4c6e; }
+    .match-arrow { font-size: 2.5rem; color: #6294b9; }
+    .time-options { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; }
+    .time-option-btn {
+      background: #d4e6f5; border: 4px solid #fff; border-radius: 60px;
+      padding: 16px 32px; font-size: 1.8rem; font-weight: 700; color: #1f4b6e;
+      cursor: pointer; box-shadow: 0 8px 0 #7a9bb8; transition: all 0.08s;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .time-option-btn:active { transform: translateY(5px); box-shadow: 0 3px 0 #7a9bb8; }
+    .time-option-btn.correct { background: #b1e0b1; box-shadow: 0 8px 0 #4e7d4e; border-color: #eaffea; }
+    .time-option-btn.wrong { background: #f8b5b5; box-shadow: 0 8px 0 #a65d5d; border-color: #ffe0e0; }
+    .time-option-btn:disabled { opacity: 0.7; cursor: default; }
+    .time-feedback {
+      font-size: 1.3rem; margin-top: 22px; font-weight: 600; color: #1f4b6e;
+      text-align: center; min-height: 36px;
+    }
+    .time-progress { text-align: center; font-size: 1.1rem; color: #4a6d8c; margin-top: 10px; font-weight: 600; }
+    .time-complete {
+      text-align: center; font-size: 2rem; font-weight: 800; color: #2e7d32;
+      padding: 30px; background: #e8f5e9; border-radius: 40px; margin-top: 20px;
+    }
+
+    /* Wordwall iframe 卡片 */
+    .wordwall-card {
+      margin-top: 30px;
+      background: linear-gradient(135deg, #fff4e6 0%, #ffe0c2 100%);
+      border-radius: 48px;
+      padding: 28px 30px;
+      box-shadow: 0 12px 0 #d9a86c, 0 8px 22px rgba(0,0,0,0.12);
+      border: 3px solid #ffe3b0;
+      text-align: center;
+    }
+    .wordwall-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .wordwall-icon {
+      font-size: 2.6rem;
+      background: #fff;
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 0 #e0b98c;
+      border: 3px solid #ffe9cf;
+      flex-shrink: 0;
+    }
+    .wordwall-title {
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: #8a3f1d;
+    }
+    .wordwall-iframe-wrapper {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+    }
+    .wordwall-iframe-wrapper iframe {
+      border-radius: 24px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      border: 4px solid #fff;
+      background: #fff;
+    }
+
+    .footer-note { margin-top: 40px; text-align: center; color: #a1846d; font-size: 0.95rem; }
+    button { font-family: inherit; }
+  </style>
+</head>
+<body>
+<div class="app-container">
+  <h1>🕐 第三課 看時間</h1>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" data-page="page-cards"><i class="fas fa-id-card"></i> 生字卡</button>
+    <button class="tab-btn" data-page="page-punct"><i class="fas fa-quote-right"></i> 標點符號</button>
+    <button class="tab-btn" data-page="page-time"><i class="fas fa-clock"></i> 時間詞</button>
+  </div>
+
+  <!-- 頁面1：生字卡 + 詞語配對 -->
+  <div class="page active" id="page-cards">
+    <div class="section-title"><i class="fas fa-id-card"></i> 生字卡</div>
+    <div class="cards-grid" id="wordCardsGrid"></div>
+    <div class="section-title" style="margin-top:30px;"><i class="fas fa-puzzle-piece"></i> 詞語配對練習</div>
+    <div class="match-container" id="matchContainer"></div>
+  </div>
+
+  <!-- 頁面2：標點符號 -->
+  <div class="page" id="page-punct">
+    <div class="section-title"><i class="fas fa-quote-right"></i> 標點符號練習（句號、冒號、引號）</div>
+    <div class="punct-grid" id="punctGrid"></div>
+    <div class="punct-footer-note" id="punctFooter">完成 <span id="punctScore">0</span> / 10 題</div>
+  </div>
+
+  <!-- 頁面3：時間詞 + Wordwall iframe -->
+  <div class="page" id="page-time">
+    <div class="section-title"><i class="fas fa-clock"></i> 認識時間詞 · 鐘錶配對</div>
+    <div class="time-section">
+      <div id="timeMatchArea"></div>
+      <div class="time-feedback" id="timeFeedback"></div>
+      <div class="time-progress" id="timeProgress"></div>
+    </div>
+
+    <!-- Wordwall 遊戲嵌入 -->
+    <div class="wordwall-card">
+      <div class="wordwall-header">
+        <div class="wordwall-icon">🎮</div>
+        <div class="wordwall-title">Wordwall 時間詞遊戲</div>
+      </div>
+      <div class="wordwall-iframe-wrapper">
+        <iframe style="max-width:100%" src="https://wordwall.net/embed/210ed52362bd3e6f162aacb7dfb08ffb?themeId=1&templateId=3&fontStackId=0" width="500" height="380" frameborder="0" allowfullscreen></iframe>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-note">粵語拼音採用香港語言學學會粵拼（Jyutping）· 點擊 🔊 收聽發音（語速 0.7）</div>
+</div>
+
+<script>
+  // 分頁切換
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.page).classList.add('active');
+    });
+  });
+
+  // 生字卡數據
+  const wordData = [
+    { chinese: '今天', english: 'Today', jyutping: 'gam1 tin1', icon: '🌞', speech: '今天' },
+    { chinese: '起牀', english: 'Get out of bed / Wake up', jyutping: 'hei2 cong4', icon: '🛏️', speech: '起牀' },
+    { chinese: '喜歡', english: 'Like', jyutping: 'hei2 fun1', icon: '❤️', speech: '喜歡' },
+    { chinese: '吃', english: 'Eat', jyutping: 'hek3', icon: '🍚', speech: '吃' },
+    { chinese: '看', english: 'Look / See / Watch', jyutping: 'hon3', icon: '👀', speech: '看' },
+    { chinese: '公園', english: 'Park', jyutping: 'gung1 jyun2', icon: '🌳', speech: '公園' },
+    { chinese: '高興', english: 'Happy', jyutping: 'gou1 hing3', icon: '😊', speech: '高興' },
+    { chinese: '做功課', english: 'Do homework', jyutping: 'zou6 gung1 fo3', icon: '📝', speech: '做功課' },
+    { chinese: '想', english: 'Want / Think', jyutping: 'soeng2', icon: '🤔', speech: '想' },
+    { chinese: '睡覺', english: 'Sleep', jyutping: 'seoi6 gaau3', icon: '😴', speech: '睡覺' }
+  ];
+
+  const cardsGrid = document.getElementById('wordCardsGrid');
+  wordData.forEach((item) => {
+    const card = document.createElement('div');
+    card.className = 'word-card';
+    card.innerHTML = `
+      <div class="word-icon">${item.icon}</div>
+      <div class="word-chinese">${item.chinese}</div>
+      <div class="word-english">${item.english}</div>
+      <div class="jyutping-row">
+        <span class="jyutping">${item.jyutping}</span>
+        <button class="speak-btn" data-speech="${item.speech}" aria-label="播放發音"><i class="fas fa-volume-up"></i></button>
+      </div>
+    `;
+    cardsGrid.appendChild(card);
+  });
+
+  // 發音
+  function speakCantonese(text) {
+    if (!('speechSynthesis' in window)) { alert('你的瀏覽器不支援語音發音。'); return; }
+    window.speechSynthesis.cancel();
+    const voices = window.speechSynthesis.getVoices();
+    const yueVoices = voices.filter(v =>
+      v.lang === 'zh-HK' || v.lang === 'yue' || v.lang === 'zh-yue' ||
+      (v.lang && v.lang.toLowerCase().includes('hk'))
+    );
+    let chosenVoice = null;
+    if (yueVoices.length > 0) {
+      chosenVoice = yueVoices.find(v =>
+        !v.name.toLowerCase().includes('google') &&
+        (v.name.toLowerCase().includes('sinji') || v.name.toLowerCase().includes('cantonese') || v.name.toLowerCase().includes('hong kong'))
+      );
+      if (!chosenVoice) chosenVoice = yueVoices.find(v => !v.name.toLowerCase().includes('google'));
+      if (!chosenVoice) chosenVoice = yueVoices[0];
+    }
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'zh-HK';
+    utterance.rate = 0.7;
+    utterance.pitch = 1.0;
+    if (chosenVoice) utterance.voice = chosenVoice;
+    if (chosenVoice && chosenVoice.name.toLowerCase().includes('google') && yueVoices.length > 1) {
+      const alt = yueVoices.find(v => !v.name.toLowerCase().includes('google'));
+      if (alt) utterance.voice = alt;
+    }
+    window.speechSynthesis.speak(utterance);
+  }
+  document.querySelectorAll('.speak-btn').forEach(btn => {
+    btn.addEventListener('click', () => speakCantonese(btn.dataset.speech));
+  });
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = () => {};
+    window.speechSynthesis.getVoices();
+  }
+
+  // 詞語配對（10題，與詞語數量相同）
+  const matchPairs = wordData.map(w => ({ word: w.chinese, icon: w.icon }));
+  const allIcons = matchPairs.map(m => m.icon);
+  const practiceWords = [...matchPairs].sort(() => Math.random() - 0.5);
+  const matchContainer = document.getElementById('matchContainer');
+  let currentMatchIndex = 0;
+
+  function renderMatchQuestion() {
+    if (currentMatchIndex >= practiceWords.length) {
+      matchContainer.innerHTML = `<div style="text-align:center; font-size:2rem; padding:30px;">🎉 太棒了！你完成了所有詞語配對！</div>`;
+      return;
+    }
+    const current = practiceWords[currentMatchIndex];
+    let options = [current.icon];
+    const distractors = allIcons.filter(ic => ic !== current.icon);
+    const shuffledDistractors = [...distractors].sort(() => Math.random() - 0.5);
+    options = options.concat(shuffledDistractors.slice(0, 5)).sort(() => Math.random() - 0.5);
+
+    let html = `
+      <div class="match-row">
+        <div class="match-word">${current.word} <i class="fas fa-arrow-right" style="font-size:1.5rem; color:#a16b43;"></i></div>
+        <div class="match-options">
+    `;
+    options.forEach(icon => {
+      html += `<button class="option-btn" data-icon="${icon}" data-correct="${icon === current.icon}"><i>${icon}</i></button>`;
+    });
+    html += `</div></div><div class="feedback-msg" id="matchFeedback"></div>`;
+    matchContainer.innerHTML = html;
+
+    document.querySelectorAll('.option-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const isCorrect = btn.dataset.correct === 'true';
+        const feedback = document.getElementById('matchFeedback');
+        if (isCorrect) {
+          btn.classList.add('correct');
+          feedback.textContent = '✅ 答對了！';
+          feedback.style.color = '#2e7d32';
+          document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+          setTimeout(() => { currentMatchIndex++; renderMatchQuestion(); }, 900);
+        } else {
+          btn.classList.add('wrong');
+          feedback.textContent = '❌ 再試試看！';
+          feedback.style.color = '#b23b3b';
+          setTimeout(() => btn.classList.remove('wrong'), 500);
+        }
+      });
+    });
+  }
+  renderMatchQuestion();
+
+  // 標點符號（10題）
+  const punctQuestions = [
+    { parts: ['我愛學校', { placeholder: 0 }], answers: ['。'], options: ['。', '：', '「', '」'], explain: '句號表示一句話說完。' },
+    { parts: ['媽媽說', { placeholder: 0 }, '「早安。」'], answers: ['：'], options: ['。', '：', '「', '」'], explain: '冒號提示後面有人說話。' },
+    { parts: ['老師說：', { placeholder: 0 }, '安靜。', { placeholder: 1 }], answers: ['「', '」'], options: ['。', '：', '「', '」'], explain: '開引號「和關引號」把說話內容包起來。' },
+    { parts: ['今天天氣真好', { placeholder: 0 }], answers: ['。'], options: ['。', '：', '「', '」'], explain: '一句話說完用句號。' },
+    { parts: ['小明說', { placeholder: 0 }, '「我喜歡公園。」'], answers: ['：'], options: ['。', '：', '「', '」'], explain: '冒號在說話內容前面。' },
+    { parts: ['爸爸說：', { placeholder: 0 }, '生日快樂！', { placeholder: 1 }], answers: ['「', '」'], options: ['。', '：', '「', '」'], explain: '開引號「和關引號」包住爸爸說的話。' },
+    { parts: ['我喜歡吃蘋果', { placeholder: 0 }], answers: ['。'], options: ['。', '：', '「', '」'], explain: '句子結束要加句號。' },
+    { parts: ['老師說', { placeholder: 0 }, '「同學早。」'], answers: ['：'], options: ['。', '：', '「', '」'], explain: '冒號提示老師要說話了。' },
+    { parts: ['姐姐說：', { placeholder: 0 }, '一起玩吧！', { placeholder: 1 }], answers: ['「', '」'], options: ['。', '：', '「', '」'], explain: '開引號「和關引號」包住姐姐說的話。' },
+    { parts: ['我們去公園玩', { placeholder: 0 }], answers: ['。'], options: ['。', '：', '「', '」'], explain: '一句話說完加句號。' }
+  ];
+
+  let punctScore = 0;
+  const punctGrid = document.getElementById('punctGrid');
+  const punctScoreSpan = document.getElementById('punctScore');
+
+  punctQuestions.forEach((q, idx) => {
+    const card = document.createElement('div');
+    card.className = 'punct-card';
+    card.id = `punct-card-${idx}`;
+    let sentenceHtml = '';
+    q.parts.forEach(part => {
+      if (typeof part === 'string') sentenceHtml += part;
+      else sentenceHtml += `<span class="punct-placeholder" data-q="${idx}" data-slot="${part.placeholder}">▢</span>`;
+    });
+    const optionsHtml = q.options.map(opt => `<button class="punct-option" data-q="${idx}" data-punct="${opt}">${opt}</button>`).join('');
+    card.innerHTML = `
+      <div class="question-num">第 ${idx + 1} 題</div>
+      <div class="sentence-box">${sentenceHtml}</div>
+      <div class="punct-options">${optionsHtml}</div>
+      <div class="feedback-msg" id="feedback-${idx}"></div>
+    `;
+    punctGrid.appendChild(card);
+  });
+
+  const punctState = punctQuestions.map(() => ({ filled: 0, answered: false }));
+  punctGrid.querySelectorAll('.punct-option').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const qIdx = parseInt(btn.dataset.q);
+      const punct = btn.dataset.punct;
+      const q = punctQuestions[qIdx];
+      const state = punctState[qIdx];
+      if (state.answered) return;
+      const feedback = document.getElementById(`feedback-${qIdx}`);
+      const card = document.getElementById(`punct-card-${qIdx}`);
+      const placeholders = card.querySelectorAll('.punct-placeholder');
+      const currentSlot = state.filled;
+      if (currentSlot >= q.answers.length) return;
+      const expected = q.answers[currentSlot];
+
+      if (punct === expected) {
+        const ph = placeholders[currentSlot];
+        ph.textContent = punct;
+        ph.classList.add('filled');
+        state.filled++;
+        feedback.textContent = `✅ 正確！`;
+        feedback.style.color = '#2e7d32';
+        if (state.filled === q.answers.length) {
+          state.answered = true;
+          card.querySelectorAll('.punct-option').forEach(b => b.disabled = true);
+          feedback.textContent = '✅ ' + q.explain;
+          punctScore++;
+          punctScoreSpan.textContent = punctScore;
+          if (punctScore === 10) {
+            document.getElementById('punctFooter').innerHTML = '🎉 太棒了！全部10題都答對了！';
+          }
+        } else {
+          feedback.textContent = `✅ 正確！請繼續填下一個空格。`;
+        }
+      } else {
+        btn.classList.add('wrong');
+        feedback.textContent = '❌ 不正確，再想想。';
+        feedback.style.color = '#b23b3b';
+        setTimeout(() => btn.classList.remove('wrong'), 600);
+      }
+    });
+  });
+
+  // 時間詞（含早上、下午、晚上）
+  const timeQuestions = [
+    { hour: 7, minute: 0, label: '七點', correct: '七點', options: ['七點', '八點', '六點'] },
+    { hour: 8, minute: 30, label: '八點半', correct: '八點半', options: ['八點半', '九點半', '七點半'] },
+    { hour: 12, minute: 0, label: '十二點', correct: '十二點', options: ['十二點', '一點', '十一點'] },
+    { hour: 3, minute: 15, label: '三點十五分', correct: '三點十五分', options: ['三點十五分', '四點十五分', '三點三十分'] },
+    { hour: 6, minute: 0, label: '六點', correct: '六點', options: ['六點', '七點', '五點'] },
+    { hour: 9, minute: 30, label: '九點半', correct: '九點半', options: ['九點半', '十點半', '八點半'] },
+    { hour: 1, minute: 0, label: '一點', correct: '一點', options: ['一點', '二點', '十二點'] },
+    { hour: 4, minute: 45, label: '四點四十五分', correct: '四點四十五分', options: ['四點四十五分', '五點四十五分', '四點十五分'] },
+    { hour: 7, minute: 0, label: '早上七點', correct: '早上', options: ['早上', '下午', '晚上'], icon: '🌅', type: 'period', periodDesc: '太陽升起，起牀上學' },
+    { hour: 3, minute: 0, label: '下午三點', correct: '下午', options: ['早上', '下午', '晚上'], icon: '☀️', type: 'period', periodDesc: '太陽高掛，做功課' },
+    { hour: 8, minute: 0, label: '晚上八點', correct: '晚上', options: ['早上', '下午', '晚上'], icon: '🌙', type: 'period', periodDesc: '天黑了，準備睡覺' },
+    { hour: 6, minute: 0, label: '早上六點', correct: '早上', options: ['早上', '下午', '晚上'], icon: '🌅', type: 'period', periodDesc: '天剛亮，起牀了' },
+    { hour: 4, minute: 30, label: '下午四點半', correct: '下午', options: ['早上', '下午', '晚上'], icon: '☀️', type: 'period', periodDesc: '放學後，去公園玩' },
+    { hour: 10, minute: 0, label: '晚上十點', correct: '晚上', options: ['早上', '下午', '晚上'], icon: '🌙', type: 'period', periodDesc: '夜深了，要睡覺' }
+  ];
+
+  let currentTimeIndex = 0;
+  const timeMatchArea = document.getElementById('timeMatchArea');
+  const timeFeedback = document.getElementById('timeFeedback');
+  const timeProgress = document.getElementById('timeProgress');
+
+  function renderClock(hour, minute) {
+    const minuteAngle = minute * 6;
+    const hourAngle = (hour % 12) * 30 + minute * 0.5;
+    let numbersHtml = '';
+    const numberPositions = [
+      { num: 12, top: '8%', left: '50%' }, { num: 1, top: '18%', left: '76%' },
+      { num: 2, top: '36%', left: '88%' }, { num: 3, top: '50%', left: '92%' },
+      { num: 4, top: '64%', left: '88%' }, { num: 5, top: '82%', left: '76%' },
+      { num: 6, top: '90%', left: '50%' }, { num: 7, top: '82%', left: '24%' },
+      { num: 8, top: '64%', left: '12%' }, { num: 9, top: '50%', left: '8%' },
+      { num: 10, top: '36%', left: '12%' }, { num: 11, top: '18%', left: '24%' }
+    ];
+    numberPositions.forEach(pos => {
+      numbersHtml += `<span style="top:${pos.top}; left:${pos.left};">${pos.num}</span>`;
+    });
+    return `
+      <div class="clock-face">
+        <div class="clock-numbers">${numbersHtml}</div>
+        <div class="hand hour-hand" style="transform: translateX(-50%) rotate(${hourAngle}deg);"></div>
+        <div class="hand minute-hand" style="transform: translateX(-50%) rotate(${minuteAngle}deg);"></div>
+        <div class="clock-center"></div>
+      </div>
+    `;
+  }
+
+  function renderTimeQuestion() {
+    if (currentTimeIndex >= timeQuestions.length) {
+      timeMatchArea.innerHTML = `<div class="time-complete">🎉 全部完成！你認識了所有時間詞！</div>`;
+      timeFeedback.textContent = '';
+      timeProgress.textContent = `已完成 ${timeQuestions.length} / ${timeQuestions.length} 題`;
+      return;
+    }
+    const q = timeQuestions[currentTimeIndex];
+    const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+    const isPeriod = q.type === 'period';
+
+    let questionHtml = '';
+    if (isPeriod) {
+      questionHtml = `
+        <div class="clock-match-row">
+          <div class="clock-display">
+            ${renderClock(q.hour, q.minute)}
+            <div class="clock-label">現在是幾點？</div>
+          </div>
+          <div style="font-size:3rem; text-align:center;">${q.icon}</div>
+          <div style="font-size:1.3rem; color:#4a6d8c; font-weight:600; text-align:center; max-width:220px;">${q.periodDesc}</div>
+          <div class="match-arrow"><i class="fas fa-arrow-right"></i></div>
+          <div class="time-options">
+            ${shuffledOptions.map(opt => `<button class="time-option-btn" data-opt="${opt}">${opt}</button>`).join('')}
+          </div>
+        </div>
+      `;
+    } else {
+      questionHtml = `
+        <div class="clock-match-row">
+          <div class="clock-display">
+            ${renderClock(q.hour, q.minute)}
+            <div class="clock-label">現在是幾點？</div>
+          </div>
+          <div class="match-arrow"><i class="fas fa-arrow-right"></i></div>
+          <div class="time-options">
+            ${shuffledOptions.map(opt => `<button class="time-option-btn" data-opt="${opt}">${opt}</button>`).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    timeMatchArea.innerHTML = questionHtml;
+
+    timeMatchArea.querySelectorAll('.time-option-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const selected = btn.dataset.opt;
+        if (selected === q.correct) {
+          btn.classList.add('correct');
+          timeFeedback.textContent = '✅ 答對了！' + q.label;
+          timeFeedback.style.color = '#2e7d32';
+          timeMatchArea.querySelectorAll('.time-option-btn').forEach(b => b.disabled = true);
+          setTimeout(() => { currentTimeIndex++; renderTimeQuestion(); }, 1000);
+        } else {
+          btn.classList.add('wrong');
+          timeFeedback.textContent = '❌ 再試試看！';
+          timeFeedback.style.color = '#b23b3b';
+          setTimeout(() => btn.classList.remove('wrong'), 600);
+        }
+      });
+    });
+
+    timeProgress.textContent = `第 ${currentTimeIndex + 1} / ${timeQuestions.length} 題`;
+  }
+
+  renderTimeQuestion();
+</script>
+</body>
+</html>
